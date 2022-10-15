@@ -1,8 +1,8 @@
 import math
-import pandas as pd
 from operator import itemgetter
 
 import numpy as np
+import pandas as pd
 
 FILEPATH_DATA = "./Daten_EA1_3_4.txt"
 KEY_JOB_ID = "j"
@@ -30,7 +30,7 @@ class ATC:
         j, wj, dj, pj = itemgetter(*INPUT_KEYS)(params)
         return (wj/pj) * math.exp(-max(dj - pj - t, 0)/(self.kappa * p_arr.mean()))
 
-    # append a list of params with index priority
+    # append a list of dicts of params with index priority
     def get_job_list_priority(self, param_list: list[dict], t: int) -> list[dict]:
         param_list_copy = param_list.copy()
         for params in param_list_copy:
@@ -76,16 +76,16 @@ def read_data_file() -> list[dict]:
         f.readline()
         for i in range(12):
             param_values = (f.readline().strip("\n").split("\t"))
-            param_list.append({k: v if k == KEY_JOB_ID else int(v)
-                               for k, v in zip(INPUT_KEYS, param_values)})
+            param_list.append(
+                {k: v if k == KEY_JOB_ID else int(v) for k, v in zip(INPUT_KEYS, param_values)}
+            )
     return param_list
 
 
 # TWT
 def calculate_twt(results: list[dict]) -> float:
     return sum(
-        result[KEY_JOB_WEIGHT] * max(result[KEY_END_TIME] - result[KEY_JOB_EFT], 0)
-        for result in results
+        result[KEY_JOB_WEIGHT] * max(result[KEY_END_TIME] - result[KEY_JOB_EFT], 0) for result in results
     )
 
 
@@ -95,7 +95,7 @@ def exercise_1_3():
     atc = ATC(kappa=0.5)
     results = atc.evaluate_schedule(schedule, 3)
     twt = calculate_twt(results)
-    print(f"RESULTS:\n{pd.DataFrame(results)}")
+    print(f"EXECUTION RESULTS:\n{pd.DataFrame(results)}")
     print(f"\nTWT: {twt}\n")
     return twt
 
@@ -104,15 +104,19 @@ def exercise_1_4a():
     print(f"*========== |EX 1.4a| ==========*\n")
     schedule = read_data_file()
     kappa_twt_list = list()
-    for s in range(1, 101, 1):
+    for s in range(1, 101):
         kappa = 0.1 * s
         atc = ATC(kappa=kappa)
         results = atc.evaluate_schedule(schedule, 3)
         twt = calculate_twt(results)
         kappa_twt_list.append({"kappa": kappa, "twt": twt})
     kappa_twt_list = sorted(kappa_twt_list, key=lambda x: x["twt"])
-    print(f"TOP 10 KAPPA-TWT VALUES:\n{pd.DataFrame(kappa_twt_list).head(10)}")
-    print(f"\nBEST KAPPA-TWT: {kappa_twt_list[0]}\n")
+    print(f"TOP 10 KAPPA-TWT VALUES:\n{pd.DataFrame(kappa_twt_list).head(10)}\n")
+    print(f"BEST KAPPA-TWT: {kappa_twt_list[0]}\n")
+    best_atc_results = ATC(kappa=kappa_twt_list[0]["kappa"]).evaluate_schedule(schedule, 3)
+    print(f"BEST KAPPA-TWT EXECUTION RESULTS:\n")
+    print(f"{pd.DataFrame(best_atc_results)[[KEY_MACHINE_ID, KEY_START_TIME, KEY_END_TIME]]}\n")
+    return kappa_twt_list[0]["twt"]
 
 
 def exercise_1_4b():
@@ -124,11 +128,26 @@ def exercise_1_4b():
     kappa = 4.5 + R if R <= 0.5 else 6 - 2 * R
     results = ATC(kappa=kappa).evaluate_schedule(schedule, 3)
     kappa_twt = {"kappa": kappa, "twt": calculate_twt(results)}
-    print(f"KAPPA-TWT: {kappa_twt}")
+    print(f"KAPPA-TWT: {kappa_twt}\n")
+    return kappa_twt["twt"]
+
+
+def exercise_1_4c():
+    print(f"*========== |EX 1.4c| ==========*\n")
+    print(
+        "LPT (Longest Processing Time) stellt eine sinnvolle Wahl für die Abschätzung der Durchlaufzeit bei List-Scheduling dar,\n"
+        "weil eine Maschine nach dem Ablaufen von LPT auf jeden Fall wieder frei ist. Man kann so eine Durchlaufzeit abschätzen ohne\n"
+        "die parallelen Verarbeitungsstränge auf diversen Maschinen berücksichtigen zu müssen.\n"
+    )
 
 
 if __name__ == '__main__':
-    exercise_1_3()
-    exercise_1_4a()
-    exercise_1_4b()
+    exercise_twts = (exercise_1_3(), exercise_1_4a(), exercise_1_4b())
+    print("COMPARISON OF ALL METHODS:")
+    comparison_df = pd.DataFrame([
+        {"method": method_twt[0], "twt": method_twt[1]}
+        for method_twt in zip(["kappa fixed at 0.5", "grid search", "emp. formula and lpt"], exercise_twts)
+    ]).sort_values("twt")
+    print(comparison_df, "\n")
+    exercise_1_4c()
 
