@@ -1,0 +1,18 @@
+j	wj	dj	pj
+0	6	2	4
+1	5	7	6
+2	5	5	6
+3	1	5	3
+4	2	8	5
+5	6	6	4
+6	2	5	2
+7	3	7	4
+8	4	8	5
+9	4	6	3
+10	5	5	2
+11	3	2	4
+
+j:  Job-Nr.
+wj: Gewicht von Job j
+dj: Fertigstellungstermin von Job j
+pj: Bearbeitungszeit von Job j
