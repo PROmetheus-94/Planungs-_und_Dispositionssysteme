@@ -1,0 +1,15 @@
+/*********************************************
+ * OPL 22.1.0.0 Data
+ * Author: m_vol
+ * Creation Date: 26 Nov 2022 at 11:53:27
+ *********************************************/
+SheetConnection sheet("Daten_EA2_4.xls");
+
+Capacity from SheetRead(sheet, "Daten!B1");
+
+NbItems from SheetRead(sheet, "Daten!B2");
+NbGroups from SheetRead(sheet, "Daten!B3");
+
+Value from SheetRead(sheet, "Daten!B6:B55");
+Weight from SheetRead(sheet, "Daten!C6:C55");
+Group from SheetRead(sheet, "Daten!D6:D55");
