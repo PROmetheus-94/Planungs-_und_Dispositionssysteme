@@ -28,7 +28,7 @@ class Job(__Metricable):
         self.d = due_date
         
     def __str__(self) -> str:
-        return f"Job(f={self.f}, w={self.w}, d={self.d}, metrics={self._metrics})"
+        return f"Job(f={self.f}, w={self.w}, d={self.d}, C={self.C}, metrics={self._metrics})"
     
     def __repr__(self) -> str:
         return str(self)
@@ -36,16 +36,21 @@ class Job(__Metricable):
 
 class Batch(__Metricable):
     
-    family: int = None
+    f: int = None # family
+    p: int = None # processing time
     jobs: List[Job] = None
     
     C: int = None # completion time
     
     def __str__(self) -> str:
-        return f"Batch(f={self.family}, jobs={self.jobs}, C={self.C}, metrics={self._metrics})"
+        return f"Batch(f={self.f}, p={self.p}, jobs={self.jobs}, C={self.C}, metrics={self._metrics})"
         
     def __repr__(self) -> str:
         return str(self)
+    
+    def apply_C_to_jobs(self) -> None:
+        for job in self.jobs:
+            job.C = self.C
 
     
 class BatchMachine:
